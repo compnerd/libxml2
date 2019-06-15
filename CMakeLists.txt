@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 
 project(libxml2)
+enable_testing()
 
 include(CheckCSourceCompiles)
 include(CheckFunctionExists)
@@ -554,34 +555,21 @@ foreach(PROGRAM ${PROGRAMS})
 	install(TARGETS	${PROGRAM} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT programs)
 endforeach()
 
-set(
-	TESTS
-	runxmlconf
-	runsuite
-	runtest
-	testapi
-	testAutomata
-	testC14N
-	testchar
-	testdict
-	testHTML
-	testModule
-	testlimits
-	testReader
-	testrecurse
-	testRegexp
-	testRelax
-	testSAX
-	testSchemas
-	testThreads
-	testURI
-	testXPath
-)
+if(ENABLE_TESTING)
+  foreach(n
+      api Automata C14N char dict HTML Module limits Reader recurse Regexp Relax
+      SAX Schemas Threads URI XPath)
+    add_executable(test${n} test${n}.c)
+    target_link_libraries(test${n} PRIVATE LibXml2)
+    add_test(NAME ${n} COMMAND test${n})
+  endforeach()
 
-foreach(TEST ${TESTS})
-	add_executable(${TEST} ${TEST}.c)
-	target_link_libraries(${TEST} LibXml2)
-endforeach()
+  foreach(r xmlconf suite test)
+    add_executable(run${r} run${r}.c)
+    target_link_libraries(run${r} PRIVATE LibXml2)
+    add_test(NAME ${r} COMMAND run${r})
+  endforeach()
+endif()
 
 if(LIBXML2_WITH_PYTHON)
 	execute_process(
